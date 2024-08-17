@@ -1,0 +1,16 @@
+module["exports"] = class {
+  static config = {
+    name: "claim",
+    description: "Claim your free $1000 every 24 hours",
+    prefix: true,
+    accessableby: 0,
+    author: "Deku",
+    cooldown: 0,
+  };
+  static async start({ reply, react, event, currencies }) {
+    react("✨");
+    const { senderID } = event;
+    const claim = await currencies("claim", senderID);
+    return reply(claim)
+  }
+};
