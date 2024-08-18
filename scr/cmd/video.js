@@ -1,6 +1,6 @@
-const path = require("path");
 const axios = require("axios");
 const fs = require("fs");
+const path = require("path");
 
 module.exports.config = {
   name: "video",
@@ -35,7 +35,7 @@ module.exports.run = async function ({ api, args, event }) {
     const thumbnail = data.thumbnail;
 
     // Corrected path to cache directory
-    const cacheDir = path.join(__dirname, "../../data/cache");
+    const cacheDir = path.join(__dirname, "cache");
     if (!fs.existsSync(cacheDir)) {
       fs.mkdirSync(cacheDir, { recursive: true });
     }
