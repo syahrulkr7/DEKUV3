@@ -2,13 +2,13 @@ const axios = require('axios');
 
 module.exports = {
     config: {
-        name: 'ai', // name of the command
-        description: 'Interact with the Gemini', // description of the command
-        usage: 'ai [custom prompt] (attach image or not)', // usage of the command
-        cooldown: 3, // cooldown in seconds
-        accessableby: 0, // 0 for everyone, 1 for bot owner/admin
-        category: 'AI', // category of the command
-        prefix: false, // command requires a prefix
+        name: 'ai',
+        description: 'Interact with the Gemini',
+        usage: 'ai [custom prompt] (attach image or not)',
+        cooldown: 3,
+        accessableby: 0,
+        category: 'AI',
+        prefix: false,
     },
     start: async function({ api, text, event, reply }) {
         const attachment = event.messageReply?.attachments[0] || event.attachments[0];
@@ -27,6 +27,8 @@ module.exports = {
         } else {
             apiUrl += `prompt=${encodeURIComponent(customPrompt)}`;
         }
+
+        api.setMessageReaction("⭐", event.messageID, () => {}, true);
 
         const initialMessage = await new Promise((resolve, reject) => {
             api.sendMessage({
