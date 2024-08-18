@@ -1,66 +1,51 @@
 
 const axios = require("axios");
 const fs = require("fs");
-const path = require("path");
 
 module.exports = {
   config: {
     name: "gore",
-    description: "Send a random gore video",
-    usage: "gore", 
-    cooldown: 5,  
-    accessableby: 2, 
-    category: "entertainment", 
-    prefix: false, 
+    description: "Sends random video gore content",
+    prefix: false,
+    usage: "gore",
+    react: "😱",
+    accessableby: 0,
+    category: "fun",
+    cooldown: 4,
   },
+  start: async function ({ reply, react }) {
+    // Define the cache directory and video path
+    const cacheDir = __dirname + "/cache";
+    const videoPath = cacheDir + "/video.mp4";
 
-  start: async function({ api, event, react, reply }) {
     try {
-      reply("⏱️ | Fetching a random gore video, please wait...");
-
-      const response = await axios.get('https://ggwp-ifzt.onrender.com/api/randgre');
-      const data = response.data.result;
-
-      if (!data || Object.keys(data).length === 0) {
-        return reply("No gore videos found.");
+      // Ensure cache directory exists
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir);
       }
 
-      const { title, source, view, comment, vote, video1: videoUrl } = data;
+      // Fetch random gore content from the API
+      const res = (await axios.get("https://ggwp-ifzt.onrender.com/api/randgre")).data;
+      const { title, tag, upload, author, comment, vote, view, video1 } = res.result;
 
-      if (!videoUrl) {
-        return reply("No valid gore video found.");
-      }
+      // Download the video
+      const videoResponse = await axios.get(video1, { responseType: "arraybuffer" });
+      fs.writeFileSync(videoPath, Buffer.from(videoResponse.data, "utf-8"));
 
-      const message = `Title: ${title}\nSource: ${source}\nViews: ${view}\nComments: ${comment}\nVotes: ${vote}`;
+      // React to the command
+      react(this.config.react);
 
-      const filePath = path.join(__dirname, `/cache/gore_video.mp4`);
-      const writer = fs.createWriteStream(filePath);
-
-      const videoResponse = await axios({
-        method: 'get',
-        url: videoUrl,
-        responseType: 'stream'
+      // Send the video and metadata as a reply
+      await reply({
+        body: `**Title:** ${title}\n**Tag:** ${tag}\n**Uploaded:** ${upload}\n**Author:** ${author}\n**Comments:** ${comment}\n**Votes:** ${vote}\n**Views:** ${view}`,
+        attachment: fs.createReadStream(videoPath),
       });
 
-      videoResponse.data.pipe(writer);
-
-      writer.on('finish', async () => {
-        react(this.config.react || "😱");
-        await reply({
-          body: message,
-          attachment: fs.createReadStream(filePath)
-        });
-
-        fs.unlinkSync(filePath);
-      });
-
-      writer.on('error', () => {
-        reply("An error occurred while downloading the video.");
-      });
-
-    } catch (error) {
-      console.error('Error:', error);
-      reply("An error occurred while processing the request.");
+      // Clean up the cached video file after sending
+      fs.unlinkSync(videoPath);
+    } catch (e) {
+      console.log(e);
+      return reply(e.message);
     }
   },
 };
