@@ -1,30 +1,17 @@
 const axios = require('axios');
 
-async function getAIResponse(question) {
-    try {
-        const response = await axios.get('https://hercai.onrender.com/v3/hercai', {
-            params: { question }
-        });
-        return response.data.reply || 'No result found.';
-    } catch (error) {
-        console.error('Error:', error);
-        throw new Error('An error occurred, please try again later.');
-    }
-}
-
 module.exports = {
     config: {
         name: 'ai2',
         description: 'Interact with the Hercai AI',
-        prefix: true,
         usage: 'ai2 [question]',
-        aliases: ['ai2'],
-        accessableby: 0,
         cooldown: 3,
+        accessableby: 0, 
+        category: 'AI',
+        prefix: true,
     },
-
-    start: async function ({ api, event, args, reply, react }) {
-        const question = args.join(' ');
+    start: async function({ api, event, text, reply }) {
+        const question = text.join(' ');
 
         if (!question) {
             return reply('Please provide a question, for example: ai2 what is love?');
@@ -41,21 +28,30 @@ module.exports = {
         });
 
         try {
-            const aiResponse = await getAIResponse(question);
+            const response = await axios.get('https://hercai.onrender.com/v3/hercai', {
+                params: { question }
+            });
+            const aiResponse = response.data;
+            const responseString = aiResponse.reply ? aiResponse.reply : 'No result found.';
 
             const formattedResponse = `
 🤖 Hercai AI
 ━━━━━━━━━━━━━━━━━━
-${aiResponse}
+${responseString}
 ━━━━━━━━━━━━━━━━━━
 -𝚆𝙰𝙶 𝙼𝙾 𝙲𝙾𝙿𝚈 𝙻𝙰𝙷𝙰𝚃 𝙽𝙶 𝚂𝙰𝙶𝙾𝚃 𝙺𝚄𝙽𝙶 𝙰𝚈𝙰𝚆 𝙼𝙾𝙽𝙶 𝙼𝙰𝙷𝙰𝙻𝙰𝚃𝙰
 ━━━━━━━━━━━━━━━━━━
 If you want to donate for the server, just PM or Add the developer: [https://www.facebook.com/Churchill.Dev4100]
-            `.trim();
+            `;
 
-            await api.editMessage(formattedResponse, initialMessage.messageID);
+            await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
+
         } catch (error) {
-            await api.editMessage(error.message, initialMessage.messageID);
+            console.error('Error:', error);
+            await api.editMessage('An error occurred, please try again later.', initialMessage.messageID);
         }
     },
+    auto: async function({ api, event, text, reply }) {
+        // Optional: Add auto-response logic here if needed
+    }
 };
