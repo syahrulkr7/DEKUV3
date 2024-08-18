@@ -18,7 +18,7 @@ module.exports = {
     try {
       reply("⏱️ | Fetching a random gore video, please wait...");
 
-      const response = await axios.get('https://ggwp-yyxy.onrender.com/api/randgre');
+      const response = await axios.get('https://ggwp-ifzt.onrender.com/api/randgre');
       const data = response.data.result;
 
       if (!data || Object.keys(data).length === 0) {
