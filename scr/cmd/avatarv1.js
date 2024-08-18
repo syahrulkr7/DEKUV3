@@ -4,7 +4,7 @@ const path = require('path');
 
 module.exports = {
   config: {
-    name: "avatar1",
+    name: "avatarv1",
     description: "Generates an avatar with the specified text, signature, and color",
     usage: "Avatarv1 bgtext | signature | color",
     cooldown: 5,
@@ -14,10 +14,15 @@ module.exports = {
     author: "Churchill",
   },
   start: async function ({ api, text, event, reply }) {
+    // Check if the user provided the necessary parameters
+    if (!text.length || text.join(" ").split(" | ").length < 3) {
+      return reply("Please provide the required parameters in the format: Avatarv1 bgtext | signature | color");
+    }
+
     let [bgtext, signature, color] = text.join(" ").split(" | ");
-    bgtext = bgtext || "DefaultText";
-    signature = signature || "Signature";
-    color = color || "black";
+    bgtext = bgtext.trim();
+    signature = signature.trim();
+    color = color.trim();
 
     async function fetchAvatar() {
       const randomId = Math.floor(Math.random() * 800) + 1;
