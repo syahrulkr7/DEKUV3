@@ -4,13 +4,13 @@ const path = require('path');
 
 module.exports = {
     config: {
-        name: 'fbcover', // Command name
+        name: 'fbcover', 
         description: 'Generate a Facebook cover image using the Canvas API.', // Description of the command
         usage: 'fbcover <name> | <subname> | <sdt> | <address> | <email> | <color>', // Usage example
         cooldown: 5, 
         accessableby: 0, 
-        category: 'Media', // Category of the command
-        prefix: false, // Command requires a prefix
+        category: 'Media', 
+        prefix: false, 
     },
     start: async function({ api, text, event, reply }) {
         // Parse the input
