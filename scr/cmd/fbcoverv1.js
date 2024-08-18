@@ -1,59 +1,50 @@
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
-  config: {
-    name: "fbcoverv1",
-    version: "1.0.0",
-    description: "Generate a Facebook cover image",
-    usage: "[fbcoverv1 <name> <id> <subname> <color>]",
-    cooldown: 5,
-    accessableby: 0,
-    category: "media",
-    prefix: true
-  },
+    config: {
+        name: 'fbcover', // Command name
+        description: 'Generate a Facebook cover image using the Canvas API.', // Description of the command
+        usage: 'fbcover <name> | <subname> | <sdt> | <address> | <email> | <color>', // Usage example
+        cooldown: 5, 
+        accessableby: 0, 
+        category: 'Media', // Category of the command
+        prefix: false, // Command requires a prefix
+    },
+    start: async function({ api, text, event, reply }) {
+        // Parse the input
+        const args = text.join(' ').split('|').map(arg => arg.trim());
+        if (args.length < 6) {
+            return reply('Please provide all the necessary details: name | subname | sdt | address | email | color');
+        }
 
-  start: async function ({ api, event, args, reply }) {
-    try {
-      const input = args.join(" ").split("|").map(arg => arg.trim());
-      const [name, id, subname, color] = input;
+        const [name, subname, sdt, address, email, color] = args;
+        const uid = event.senderID; 
 
-      if (!name || !id || !subname || !color) {
-        return reply("Usage: fbcoverv1 name | id | nickname | color");
-      }
+        
+        const apiUrl = `https://ggwp-ifzt.onrender.com/canvas/fbcover?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&sdt=${encodeURIComponent(sdt)}&address=${encodeURIComponent(address)}&email=${encodeURIComponent(email)}&uid=${encodeURIComponent(uid)}&color=${encodeURIComponent(color)}`;
 
-      const url = `https://hiroshi-rest-api.replit.app/canvas/fbcoverv1?name=${encodeURIComponent(name)}&id=${encodeURIComponent(id)}&subname=${encodeURIComponent(subname)}&color=${encodeURIComponent(color)}`;
-      const imagePath = path.join(__dirname, "fbcoverv1.png");
+        
+        const tempFilePath = path.join(__dirname, 'fbcover.jpg');
 
-      reply("Generating your Facebook cover, please wait...");
+        try {
+            
+            const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
+            fs.writeFileSync(tempFilePath, response.data);
+          
+        
+            api.sendMessage({
+                body: 'Here is your custom Facebook cover!',
+                attachment: fs.createReadStream(tempFilePath)
+            }, event.threadID, () => {
+                
+                fs.unlinkSync(tempFilePath);
+            }, event.messageID);
 
-      const response = await axios({
-        url: url,
-        method: 'GET',
-        responseType: 'stream'
-      });
-
-      const writer = fs.createWriteStream(imagePath);
-      response.data.pipe(writer);
-
-      writer.on('finish', () => {
-        api.sendMessage({
-          attachment: fs.createReadStream(imagePath)
-        }, event.threadID, () => {
-          fs.unlinkSync(imagePath);
-        });
-      });
-
-      writer.on('error', (err) => {
-        console.error('Stream writer error:', err);
-        reply("An error occurred while processing the request.");
-      });
-    } catch (error) {
-      console.error('Error:', error);
-      reply("An error occurred while processing the request.");
+        } catch (error) {
+            console.error('Error:', error);
+            return reply('An error occurred while generating the Facebook cover. Please try again later.');
+        }
     }
-  },
-
-  auto: async function () {}
 };
