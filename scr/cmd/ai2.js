@@ -8,7 +8,7 @@ module.exports = {
         cooldown: 3,
         accessableby: 0, 
         category: 'AI',
-        prefix: true,
+        prefix: false,
     },
     start: async function({ api, event, text, reply }) {
         const question = text.join(' ');
