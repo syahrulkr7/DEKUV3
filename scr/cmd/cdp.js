@@ -36,7 +36,7 @@ module.exports = {
         const imageUrl = imageUrls[key];
         const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
 
-        const imagePath = path.join(cacheDir, `${key}.jpeg`);
+        const imagePath = path.join(cacheDir, `${key}.png`);
         fs.writeFileSync(imagePath, imageResponse.data);
         imagePaths.push(imagePath);
       }
