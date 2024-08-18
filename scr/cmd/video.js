@@ -1,51 +1,52 @@
+const path = require("path");
 const axios = require("axios");
 const fs = require("fs");
-const path = require("path");
 
 module.exports = {
-    config: {
-        name: "video",
-        description: "Search video from YouTube",
-        usage: "video [search]",
-        cooldown: 9,
-        accessableby: 0,
-        category: "Media",
-        prefix: false
-    },
-    start: async function ({ api, event, args, reply }) {
-        try {
-            const searchQuery = args.join(" ");
-            if (!searchQuery) {
-                return reply("Usage: video <search text>");
-            }
+  config: {
+    name: "video",
+    description: "Search video from YouTube",
+    usage: "video [search]",
+    cooldown: 9,
+    accessableby: 0,
+    category: "media",
+    prefix: true,
+  },
 
-            const ugh = await api.sendMessage(`⏱️ | Searching, for '${searchQuery}' please wait...`, event.threadID);
+  start: async function ({ api, text, event, reply }) {
+    try {
+      const searchQuery = text.join(" ");
+      if (!searchQuery) {
+        return reply("Usage: video <search text>");
+      }
 
-            await api.setMessageReaction("🕥", event.messageID, true);
+      const ugh = await reply(`⏱️ | Searching for '${searchQuery}', please wait...`);
+      api.setMessageReaction("🕥", event.messageID, () => {}, true);
 
-            const response = await axios.get(`https://chorawrs-sheshh.vercel.app/video?search=${encodeURIComponent(searchQuery)}`);
-            const data = response.data;
-            const videoUrl = data.downloadUrl;
-            const title = data.title;
-            const thumbnail = data.thumbnail;
+      const response = await axios.get(`https://chorawrs-sheshh.vercel.app/video?search=${encodeURIComponent(searchQuery)}`);
 
-            const videoPath = path.join(__dirname, "cache", "video.mp4");
+      const { downloadUrl: videoUrl, title, thumbnail } = response.data;
+      const videoPath = path.join(__dirname, "cache", "video.mp4");
 
-            const videoResponse = await axios.get(videoUrl, { responseType: "arraybuffer" });
-            fs.writeFileSync(videoPath, Buffer.from(videoResponse.data));
+      const videoResponse = await axios.get(videoUrl, { responseType: "arraybuffer" });
+      fs.writeFileSync(videoPath, Buffer.from(videoResponse.data));
 
-            await api.setMessageReaction("✅", event.messageID, true);
+      api.setMessageReaction("✅", event.messageID, () => {}, true);
 
-            await api.sendMessage({
-                body: `Here's your video, enjoy!🥰\n\nTitle: ${title}\nImage: ${thumbnail}`,
-                attachment: fs.createReadStream(videoPath),
-            }, event.threadID, event.messageID);
+      await api.sendMessage(
+        {
+          body: `Here's your video, enjoy!🥰\n\nTitle: ${title}\nImage: ${thumbnail}`,
+          attachment: fs.createReadStream(videoPath),
+        },
+        event.threadID,
+        event.messageID
+      );
 
-            fs.unlinkSync(videoPath);
-            await api.unsendMessage(ugh.messageID);
-        } catch (error) {
-            await reply(`Error: ${error.message}`);
-            console.log(error);
-        }
+      fs.unlinkSync(videoPath);
+      api.unsendMessage(ugh.messageID);
+    } catch (error) {
+      reply(`error: ${error.message}`);
+      console.log(error);
     }
+  },
 };
