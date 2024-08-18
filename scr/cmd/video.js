@@ -29,8 +29,7 @@ module.exports = {
             const title = data.title;
             const thumbnail = data.thumbnail;
 
-            // Save the video in the current directory with a unique filename
-            const videoPath = path.join(__dirname, `video_${Date.now()}.mp4`);
+            const videoPath = path.join(__dirname, "cache", "video.mp4");
 
             const videoResponse = await axios.get(videoUrl, { responseType: "arraybuffer" });
             fs.writeFileSync(videoPath, Buffer.from(videoResponse.data));
@@ -42,7 +41,6 @@ module.exports = {
                 attachment: fs.createReadStream(videoPath),
             }, event.threadID, event.messageID);
 
-            
             fs.unlinkSync(videoPath);
             await api.unsendMessage(ugh.messageID);
         } catch (error) {
