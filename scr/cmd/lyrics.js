@@ -9,6 +9,7 @@ module.exports = {
     accessableby: 0, // 0 = everyone
     category: "music",
     prefix: false,
+    author: "churchill" // Added credits for the author
   },
   start: async function ({ api, text, react, event, reply }) {
     try {
@@ -23,7 +24,7 @@ module.exports = {
         const response = await axios.get(`https://markdevs-last-api-2epw.onrender.com/search/lyrics?q=${encodeURIComponent(query)}`);
         const { lyrics, title, artist, image } = response.data.result;
 
-        if (!lyrics || notitle || !artist || !image) {
+        if (!lyrics || !title || !artist || !image) {
           return reply("Lyrics not found for the given query.");
         }
 
