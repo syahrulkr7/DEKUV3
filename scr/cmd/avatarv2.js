@@ -4,9 +4,9 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "avatar",
+    name: "avatarv2",
     description: "Generate avatar v2",
-    usage: "[avatarv <id> | <bgtext> | <signature> | <color>]",
+    usage: "[avatarv2 <id> | <bgtext> | <signature> | <color>]",
     cooldown: 5, 
     accessableby: 0, 
     category: "image", 
