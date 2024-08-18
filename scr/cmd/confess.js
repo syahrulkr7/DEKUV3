@@ -57,7 +57,7 @@ module.exports = {
           message: {
             ranges: [],
             text:
-              "[ DEKU BOT CONFESSION ]\n\nThis message is for the person tagged\n\nMessage: " +
+              "[ CHILLI BOT CONFESSION ]\n\nThis message is for the person tagged\n\nMessage: " +
               msg,
           },
           with_tags_ids: [uid],
