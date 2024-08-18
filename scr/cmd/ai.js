@@ -9,7 +9,6 @@ module.exports = {
     accessableby: 0,
     category: "general",
     prefix: false,
-    aliases: ["gemini"],
   },
   start: async function ({ api, text, event, reply }) {
     try {
