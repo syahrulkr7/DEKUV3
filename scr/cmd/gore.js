@@ -1,4 +1,3 @@
-
 const axios = require("axios");
 const fs = require("fs");
 
@@ -14,7 +13,6 @@ module.exports = {
     cooldown: 4,
   },
   start: async function ({ reply, react }) {
-    // Define the cache directory and video path
     const cacheDir = __dirname + "/cache";
     const videoPath = cacheDir + "/video.mp4";
 
@@ -30,7 +28,7 @@ module.exports = {
 
       // Download the video
       const videoResponse = await axios.get(video1, { responseType: "arraybuffer" });
-      fs.writeFileSync(videoPath, Buffer.from(videoResponse.data, "utf-8"));
+      fs.writeFileSync(videoPath, videoResponse.data);
 
       // React to the command
       react(this.config.react);
