@@ -1,4 +1,8 @@
 "use strict";
+const axios = require("axios");
+const fs = require("fs");
+const path = require("path");
+
 module.exports = {
   config: {
     name: "cdp",
@@ -8,38 +12,42 @@ module.exports = {
     react: "🥰",
     accessableby: 0,
     category: "fun",
-    cooldown: 4
+    cooldown: 4,
   },
-  start: async function ({ reply, react }) {
-    const axios = require("axios"),
-      fs = require("fs"),
-      path = __dirname + "/cache/one.png",
-      path1 = __dirname + "/cache/two.png";
-    let images = [];
+  
+  start: async function({ api, event, react, reply }) {
     try {
-      const res = (await axios.get(global.deku.ENDPOINT+"/cdp"))
-        .data;
-      const img1 = (
-        await axios.get(res.result.one, {
-          responseType: "arraybuffer",
-        })
-      ).data;
-      const img2 = (
-        await axios.get(res.result.two, {
-          responseType: "arraybuffer",
-        })
-      ).data;
-      fs.writeFileSync(path, Buffer.from(img1, "utf-8"));
-      fs.writeFileSync(path1, Buffer.from(img2, "utf-8"));
-      images.push(fs.createReadStream(path));
-      images.push(fs.createReadStream(path1));
+      const apiUrl = 'https://ggwp-ifzt.onrender.com/cdp';
+      reply("𝚂𝙴𝙽𝙳𝙸𝙽𝙶 𝙲𝙳𝙿 𝙿𝙸𝙲...");
+
+      const response = await axios.get(apiUrl);
+      const imageUrls = response.data.result;
+
+      const imagePaths = [];
+      const imageKeys = Object.keys(imageUrls);
+
+      for (const key of imageKeys) {
+        const imageUrl = imageUrls[key];
+        const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+        const imagePath = path.join(__dirname, `/cache/${key}.jpeg`);
+        fs.writeFileSync(imagePath, imageResponse.data);
+        imagePaths.push(imagePath);
+      }
+
+      const attachments = imagePaths.map(imagePath => fs.createReadStream(imagePath));
+
       react(this.config.react);
-      return reply({
-        attachment: images,
+      reply({
+        body: "Here are your cdp images!",
+        attachment: attachments
       });
-    } catch (e) {
-      console.log(e);
-      return reply(e.message);
+
+      // Clean up temporary image files
+      imagePaths.forEach(imagePath => fs.unlinkSync(imagePath));
+
+    } catch (error) {
+      console.error('Error:', error);
+      reply("An error occurred while fetching the images.");
     }
   },
 };
