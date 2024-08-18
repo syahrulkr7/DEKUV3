@@ -35,33 +35,27 @@ module.exports = {
                 return reply("No video available in the response.");
             }
 
-        
-            const extension = path.extname(videoUrl);
-            if (extension !== '.mp4') {
-                return reply("The video fetched is not in .mp4 format.");
-            }
+            // Define the path to save the video with an .mp4 extension
+            const videoPath = path.join(__dirname, 'randomvideogore.mp4');
 
-            
-            const videoPath = path.join(__dirname, 'video.mp4');
-
-            
+            // Download the video and save it locally with the .mp4 extension
             const videoResponse = await axios({
                 url: videoUrl,
                 method: 'GET',
                 responseType: 'stream'
             });
 
-            
+            // Pipe the video data to the file
             const writer = fs.createWriteStream(videoPath);
             videoResponse.data.pipe(writer);
 
-          
+            // Wait for the download to finish
             await new Promise((resolve, reject) => {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
 
-            
+            // Send the video as an attachment
             await api.sendMessage({
                 body: 'Here is the video:',
                 attachment: fs.createReadStream(videoPath)
