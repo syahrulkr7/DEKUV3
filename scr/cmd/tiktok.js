@@ -1,29 +1,30 @@
-
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 
 module.exports = {
   config: {
-    name: "tiktok",
-    description: "Tiktok search",
-    usage: "tiktok <search>",
-    cooldown: 5,
-    accessableby: 0,
-    category: "entertainment",
-    prefix: false
+    name: "tiktok", // name of the command
+    description: "Search TikTok videos", // description of the command
+    usage: "tiktok <search>", // usage of the command
+    cooldown: 5, // cooldown in seconds
+    accessableby: 0, // 0 is for everyone
+    category: "Search", // category of the command
+    prefix: true, // requires a prefix
   },
 
-  start: async function({ api, event, args, reply }) {
+  start: async function ({ api, event, text, reply }) {
     try {
-      const searchQuery = args.join(" ");
+      const searchQuery = text.join(" ");
       if (!searchQuery) {
         return reply("Usage: tiktok <search text>");
       }
 
       reply("🤳 | Searching, please wait...");
 
-      const response = await axios.get(`https://markdevs-last-api-2epw.onrender.com/api/tiksearch?search=${encodeURIComponent(searchQuery)}`);
+      const response = await axios.get(
+        `https://markdevs-last-api-2epw.onrender.com/api/tiksearch?search=${encodeURIComponent(searchQuery)}`
+      );
 
       const videos = response.data.data.videos;
 
@@ -40,24 +41,27 @@ module.exports = {
       const writer = fs.createWriteStream(filePath);
 
       const videoResponse = await axios({
-        method: 'get',
+        method: "get",
         url: videoUrl,
-        responseType: 'stream'
+        responseType: "stream",
       });
 
       videoResponse.data.pipe(writer);
 
-      writer.on('finish', async () => {
-        await reply({
-          body: message,
-          attachment: fs.createReadStream(filePath)
-        });
-        fs.unlinkSync(filePath);
+      writer.on("finish", () => {
+        api.sendMessage(
+          { body: message, attachment: fs.createReadStream(filePath) },
+          event.threadID,
+          () => fs.unlinkSync(filePath)
+        );
       });
-
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
       reply("An error occurred while processing the request.");
     }
+  },
+
+  auto: async function ({ api, event, reply }) {
+    // auto-reply function, you can leave this empty if it's not needed
   },
 };
