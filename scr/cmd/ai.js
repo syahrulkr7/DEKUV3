@@ -36,17 +36,20 @@ module.exports = {
             const response = await axios.get(apiUrl);
             const gptResponse = response.data;
 
-            const currentDate = new Date();
+            // Fetch the user's name if not already set
+            const senderName = event.senderName || (await api.getUserInfo(event.senderID))[event.senderID].name || 'Unknown User';
+
+            // Get the current date and time in the correct timezone
+            const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
+            const currentDateObj = new Date(currentDate);  // Convert to Date object for easier manipulation
+
             const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const dayName = daysOfWeek[currentDate.getDay()];
-            const timeString = currentDate.toLocaleTimeString('en-US', {
+            const dayName = daysOfWeek[currentDateObj.getDay()];
+            const timeString = currentDateObj.toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
-                hour12: true,
-                timeZone: 'Asia/Manila'
+                hour12: true
             });
-
-            const senderName = event.senderName || event.senderID;
 
             const formattedResponse = `
 🤖 Chilli Response
