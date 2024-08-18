@@ -1,57 +1,63 @@
 const axios = require('axios');
 
 module.exports = {
-  config: {
-    name: "ai",
-    description: "AI command to process photos or answer text-based questions.",
-    usage: "ai [prompt or question] [photo (optional)]",
-    cooldown: 2,
-    accessableby: 0,
-    category: "general",
-    prefix: false,
-  },
-  start: async function ({ api, text, event, reply }) {
-    try {
-      const prompt = text.join(" ");
+    config: {
+        name: 'ai', // name of the command
+        description: 'Interact with the Gemini', // description of the command
+        usage: 'ai [custom prompt] (attach image or not)', // usage of the command
+        cooldown: 3, // cooldown in seconds
+        accessableby: 0, // 0 for everyone, 1 for bot owner/admin
+        category: 'AI', // category of the command
+        prefix: false, // command requires a prefix
+    },
+    start: async function({ api, text, event, reply }) {
+        const attachment = event.messageReply?.attachments[0] || event.attachments[0];
+        const customPrompt = text.join(' ');
 
-      console.log("Event Attachments:", event.attachments);
-
-      if (event.attachments && event.attachments.length > 0) {
-        const attachment = event.attachments[0];
-
-        console.log("Attachment Type:", attachment.type);
-
-        if (attachment.type === 'photo') {
-          const photoUrl = attachment.url;
-
-          console.log("Photo URL:", photoUrl);
-
-          const response = await axios.get(`https://ggwp-ifzt.onrender.com/gemini?prompt=${encodeURIComponent(prompt)}&url=${photoUrl}`);
-
-          if (response.data && response.data.gemini) {
-            return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\n${response.data.gemini}\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
-          } else {
-            return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\nSorry, I couldn't process the photo with that prompt. Please try again.\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
-          }
-        } else {
-          return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\nPlease attach a valid photo.\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
+        if (!customPrompt && !attachment) {
+            return reply('Please provide a prompt or attach a photo for the AI to analyze.');
         }
-      }
 
-      if (text.length > 0) {
-        const response = await axios.get(`https://ggwp-ifzt.onrender.com/gemini?prompt=${encodeURIComponent(prompt)}`);
+        let apiUrl = 'https://ggwp-ifzt.onrender.com/gemini?';
 
-        if (response.data && response.data.gemini) {
-          return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\n${response.data.gemini}\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
+        if (attachment && attachment.type === 'photo') {
+            const prompt = customPrompt || 'describe this photo';
+            const imageUrl = attachment.url;
+            apiUrl += `prompt=${encodeURIComponent(prompt)}&url=${encodeURIComponent(imageUrl)}`;
         } else {
-          return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\nSorry, I couldn't answer your question. Please try again.\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
+            apiUrl += `prompt=${encodeURIComponent(customPrompt)}`;
         }
-      }
 
-      return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\nPlease provide a photo with a prompt or ask a question.\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
-    } catch (error) {
-      console.error("Error handling AI command:", error);
-      return reply(`✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎\n━━━━━━━━━━━━━━━━━━\nAn error occurred while processing your request. Please try again later.\n━━━━━━━━━━━━━━━━━━\n-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕`);
+        const initialMessage = await new Promise((resolve, reject) => {
+            api.sendMessage({
+                body: '🔍 Processing your request...',
+                mentions: [{ tag: event.senderID, id: event.senderID }],
+            }, event.threadID, (err, info) => {
+                if (err) return reject(err);
+                resolve(info);
+            }, event.messageID);
+        });
+
+        try {
+            const response = await axios.get(apiUrl);
+            const aiResponse = response.data.gemini;
+
+            const formattedResponse = `
+✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎
+━━━━━━━━━━━━━━━━━━
+${aiResponse.trim()}
+━━━━━━━━━━━━━━━━━━
+-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕
+            `;
+
+            await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
+
+        } catch (error) {
+            console.error('Error:', error);
+            await api.editMessage('An error occurred, please try using the "ai2" command.', initialMessage.messageID);
+        }
+    },
+    auto: async function({ api, event, text, reply }) {
+        // If you want to implement auto-response logic
     }
-  },
 };
