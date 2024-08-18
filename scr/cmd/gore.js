@@ -36,6 +36,7 @@ module.exports = {
 
             const videoPath = path.join(__dirname, 'randomvideogore.mp4');
 
+            // Stream the video and save it to a file
             const videoResponse = await axios({
                 url: videoUrl,
                 method: 'GET',
@@ -45,24 +46,34 @@ module.exports = {
             const writer = fs.createWriteStream(videoPath);
             videoResponse.data.pipe(writer);
 
+            // Ensure the video is completely downloaded before proceeding
             await new Promise((resolve, reject) => {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
 
+            // Send the video file as an attachment
             await api.sendMessage({
                 body: message,
                 attachment: fs.createReadStream(videoPath)
-            }, event.threadID);
-
-            fs.unlink(videoPath, (err) => {
-                if (err) console.error("Failed to delete video:", err);
+            }, event.threadID, (err) => {
+                if (err) {
+                    console.error("Error sending video:", err);
+                } else {
+                    // Delete the video file after sending
+                    fs.unlink(videoPath, (err) => {
+                        if (err) {
+                            console.error("Failed to delete video:", err);
+                        }
+                    });
+                }
             });
 
             await api.setMessageReaction("✅", event.messageID, true);
 
         } catch (error) {
             console.error("Error fetching or sending video:", error);
+            await api.setMessageReaction("❌", event.messageID, true);
             return reply("There was an error fetching the random gore video.");
         }
     }
