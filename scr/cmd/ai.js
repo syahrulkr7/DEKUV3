@@ -9,23 +9,22 @@ module.exports = {
         accessableby: 0,
         category: 'AI',
         prefix: false,
+        author: 'churchill',
     },
     start: async function({ api, text, event, reply }) {
         const customPrompt = text.join(' ');
 
         if (!customPrompt) {
-            return reply('Please provide a 𝚚𝚞𝚎𝚜𝚝𝚒𝚘𝚗.');
+            return reply('Please provide a question.');
         }
 
         const apiUrl = `https://asmit-docs.onrender.com/Gpt?prompt=${encodeURIComponent(customPrompt)}`;
 
-        // React to the user's original message with a loading emoji
         api.setMessageReaction("🔄", event.messageID, () => {}, true);
 
-        // Send the initial response
         const initialMessage = await new Promise((resolve, reject) => {
             api.sendMessage({
-                body: '𝙲𝚑𝚒𝚕𝚕𝚒 𝙶𝚎𝚗𝚎𝚛𝚊𝚝𝚒𝚗𝚐 𝙰𝚗𝚜𝚠𝚎𝚛...',
+                body: 'Chilli Generating Answer...',
                 mentions: [{ tag: event.senderID, id: event.senderID }],
             }, event.threadID, (err, info) => {
                 if (err) return reject(err);
@@ -40,23 +39,25 @@ module.exports = {
             const currentDate = new Date();
             const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
             const dayName = daysOfWeek[currentDate.getDay()];
-            const timeString = currentDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            const timeString = currentDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Manila'
+            });
 
-            const senderName = event.senderName || 'Unknown User';
+            const senderName = event.senderName || event.senderID;
 
             const formattedResponse = `
-🤖 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎
+🤖 Chilli Response
 ━━━━━━━━━━━━━━━━━━
 ${gptResponse.trim()}
 ━━━━━━━━━━━━━━━━━━
-👤 𝙰𝚜𝚔𝚎𝚍 𝙱𝚢: ${senderName}
-🕒 𝚁𝚎𝚜𝚙𝚘𝚗𝚍 𝚃𝚒𝚖𝚎: ${dayName} ${timeString}
+👤 Asked By: ${senderName}
+🕒 Respond Time: ${dayName} ${timeString}
             `;
 
-            // Edit the initial message with the GPT response
             await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
-
-            // React to the user's original message with a checkmark
             api.setMessageReaction("✔️", event.messageID, () => {}, true);
 
         } catch (error) {
