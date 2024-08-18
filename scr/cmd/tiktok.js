@@ -4,13 +4,13 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "tiktok", // name of the command
-    description: "Search TikTok videos", // description of the command
-    usage: "tiktok <search>", // usage of the command
-    cooldown: 5, // cooldown in seconds
-    accessableby: 0, // 0 is for everyone
-    category: "Search", // category of the command
-    prefix: true, // requires a prefix
+    name: "tiktok", 
+    description: "Search TikTok videos",
+    usage: "tiktok <search>",
+    cooldown: 5, 
+    accessableby: 0, 
+    category: "Search", 
+    prefix: true, 
   },
 
   start: async function ({ api, event, text, reply }) {
