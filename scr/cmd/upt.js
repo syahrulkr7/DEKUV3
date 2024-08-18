@@ -1,44 +1,75 @@
-module.exports.start = async function ({ text, reply }) {
-  const axios = require("axios");
-  const time = process.uptime();
-  const hours = Math.floor(time / (60 * 60));
-  const minutes = Math.floor((time % (60 * 60)) / 60);
-  const seconds = Math.floor(time % 60);
-  const id = text[0] || "4";
-  const gh = "churchilli";
-  const insta = "chillimansi";
-  const fb = "Churchill ag";
-  const bname = global.deku.BOTNAME;
-  const res = (
-    await axios.get(
-      global.deku.ENDPOINT +
-        `/canvas/uptime?id=${id}&instag=${insta}&ghub=${gh}&fb=${fb}&hours=${hours}&minutes=${minutes}&seconds=${seconds}&botname=${bname}`,
-      {
-        responseType: "stream",
-      },
-    )
-  ).data;
-  return reply({
-    body:
-      "UPTIME: " +
-      hours +
-      ":" +
-      minutes +
-      ":" +
-      seconds +
-      "\nCharacter ID: " +
-      id +
-      "\nBot Name: " +
-      bname,
-    attachment: res,
-  });
+const chilli = require('os');
+const bingchilling = require('pidusage');
+const chungkilss = require('axios');
+const pogi = require('fs');
+const churchillitos = require('path');
+
+module.exports = {
+    config: {
+        name: "uptime",
+        description: "Get bot uptime and system information",
+        usage: "",
+        cooldown: 5,
+        accessableby: 0,
+        category: "System",
+        prefix: false,
+    },
+    start: async function({ api, event, reply }) {
+        const time = process.uptime();
+        const { days, hours, mins, seconds } = getUptime(time);
+
+        const usage = await bingchilling(process.pid);
+
+        const osInfo = {
+            platform: chilli.platform(),
+            architecture: chilli.arch()
+        };
+
+        const botName = "CHILLI BOT";
+        const instag = "chillimansi";
+        const ghub = "churchillitos";
+        const fb = "Churchill Ag";
+
+        const avatarId = Math.floor(Math.random() * 800) + 1;
+
+        const apiUrl = `https://ggwp-ifzt.onrender.com/canvas/uptime?id=${avatarId}&instag=${instag}&ghub=${ghub}&fb=${fb}&hours=${hours}&minutes=${mins}&seconds=${seconds}&botname=${botName}`;
+
+        const timeStart = Date.now();
+        const returnResult = `BOT has been working for ${hours} hour(s) ${mins} minute(s) ${seconds} second(s).\n\n❖ Cpu usage: ${usage.cpu.toFixed(1)}%\n❖ RAM usage: ${byte2mb(usage.memory)}\n❖ Cores: ${chilli.cpus().length}\n❖ Ping: ${Date.now() - timeStart}ms\n❖ Operating System Platform: ${osInfo.platform}\n❖ System CPU Architecture: ${osInfo.architecture}`;
+
+        try {
+            const response = await chungkilss.get(apiUrl, { responseType: 'arraybuffer' });
+            const imagePath = churchillitos.join(__dirname, "uptime.jpg");
+
+            pogi.writeFileSync(imagePath, response.data);
+
+            api.sendMessage({
+                body: returnResult,
+                attachment: pogi.createReadStream(imagePath)
+            }, event.threadID, () => {
+                pogi.unlinkSync(imagePath);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            reply(returnResult);
+        }
+    },
+    auto: async function({ api, event, reply }) {
+    }
 };
-module.exports.config = {
-  name: "upt",
-  prefix: false,
-  accessibleby: 0,
-  description: "Upt",
-  credits: "Deku",
-  category: "system",
-  cooldown: 0
-};
+
+function byte2mb(bytes) {
+    const units = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    let l = 0, n = parseInt(bytes, 10) || 0;
+    while (n >= 1024 && ++l) n = n / 1024;
+    return `${n.toFixed(n < 10 && l > 0 ? 1 : 0)} ${units[l]}`;
+}
+
+function getUptime(uptime) {
+    const days = Math.floor(uptime / (3600 * 24));
+    const hours = Math.floor((uptime % (3600 * 24)) / 3600);
+    const mins = Math.floor((uptime % 3600) / 60);
+    const seconds = Math.floor(uptime % 60);
+
+    return { days, hours, mins, seconds };
+}
