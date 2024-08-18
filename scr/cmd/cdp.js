@@ -1,4 +1,3 @@
-
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
@@ -23,13 +22,21 @@ module.exports = {
       const response = await axios.get(apiUrl);
       const imageUrls = response.data.result;
 
-      const imagePaths = [];
-      const imageKeys = Object.keys(imageUrls);
+      if (!imageUrls || Object.keys(imageUrls).length === 0) {
+        throw new Error("No images found in response.");
+      }
 
-      for (const key of imageKeys) {
+      const cacheDir = path.join(__dirname, 'cache');
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir);
+      }
+
+      const imagePaths = [];
+      for (const key of Object.keys(imageUrls)) {
         const imageUrl = imageUrls[key];
         const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-        const imagePath = path.join(__dirname, `/cache/${key}.jpeg`);
+
+        const imagePath = path.join(cacheDir, `${key}.jpeg`);
         fs.writeFileSync(imagePath, imageResponse.data);
         imagePaths.push(imagePath);
       }
@@ -46,7 +53,7 @@ module.exports = {
       imagePaths.forEach(imagePath => fs.unlinkSync(imagePath));
 
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error:', error.message);
       reply("An error occurred while fetching the images.");
     }
   },
