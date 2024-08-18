@@ -1,30 +1,37 @@
-const path = require("path");
 const axios = require("axios");
 const fs = require("fs");
+const path = require("path");
 
 module.exports = {
   config: {
     name: "video",
-    version: "9",
     description: "Search video from YouTube",
-    category: "media",
+    usage: "video [search]",
+    prefix: true,
     accessableby: 0,
+    category: "media",
     cooldown: 9,
-    usage: "[video [search]",
-    prefix: false
   },
-
-  start: async function ({ api, args, event, react, reply }) {
+  
+  start: async function ({ api, reply, text, event }) {
     try {
-      const searchQuery = args.join(" ");
+      const searchQuery = text.join(" ");
       if (!searchQuery) {
         return reply("Usage: video <search text>");
       }
 
-      const ugh = await reply(`⏱️ | Searching for '${searchQuery}', please wait...`);
-      react("🕥");
+      const ugh = await api.sendMessage(
+        `⏱️ | Searching for '${searchQuery}', please wait...`,
+        event.threadID
+      );
 
-      const response = await axios.get(`https://chorawrs-sheshh.vercel.app/video?search=${encodeURIComponent(searchQuery)}`);
+      api.setMessageReaction("🕥", event.messageID, (err) => {}, true);
+
+      const response = await axios.get(
+        `https://chorawrs-sheshh.vercel.app/video?search=${encodeURIComponent(
+          searchQuery
+        )}`
+      );
 
       const data = response.data;
       const videoUrl = data.downloadUrl;
@@ -37,12 +44,12 @@ module.exports = {
 
       fs.writeFileSync(videoPath, Buffer.from(videoResponse.data));
 
-      react("✅");
+      api.setMessageReaction("✅", event.messageID, (err) => {}, true);
 
       await api.sendMessage(
         {
           body: `Here's your video, enjoy!🥰\n\nTitle: ${title}\nImage: ${thumbnail}`,
-          attachment: fs.createReadStream(videoPath)
+          attachment: fs.createReadStream(videoPath),
         },
         event.threadID,
         event.messageID
@@ -52,10 +59,12 @@ module.exports = {
       api.unsendMessage(ugh.messageID);
 
     } catch (error) {
-      reply(`error: ${error.message}`);
+      api.sendMessage(`error: ${error.message}`, event.threadID, event.messageID);
       console.log(error);
     }
   },
-
-  auto: async function () {}
+  
+  startReply: async function () {
+    // No need for startReply as there's no follow-up interaction in this command
+  },
 };
