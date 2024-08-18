@@ -114,13 +114,13 @@ module.exports = {
         const postID = info.data.story_create.story.legacy_story_hideable_id;
         if (!postID) throw info.errors;
         console.log(
-          "[ DEKU BOT CONFESSION ]\n\nLink: https://www.facebook.com/" +
+          "[ CHILLI BOT CONFESSION ]\n\nLink: https://www.facebook.com/" +
             api.getCurrentUserID() +
             "/posts/" +
             postID,
         );
         return api.sendMessage(
-          "[ DEKU BOT CONFESSION ]\n\nLink: https://www.facebook.com/" +
+          "[ CHILLI BOT CONFESSION ]\n\nLink: https://www.facebook.com/" +
             api.getCurrentUserID() +
             "/posts/" +
             postID,
