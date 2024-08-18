@@ -1,6 +1,7 @@
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+const os = require('os'); // For handling temporary directory
 
 module.exports = {
     config: {
@@ -34,13 +35,14 @@ module.exports = {
                 return reply("No video available in the response.");
             }
 
-            const videoPath = path.join(__dirname, 'randomvideogore.mp4');
+            const videoPath = path.join(os.tmpdir(), 'randomvideogore.mp4');
 
             // Stream the video and save it to a file
             const videoResponse = await axios({
                 url: videoUrl,
                 method: 'GET',
-                responseType: 'stream'
+                responseType: 'stream',
+                timeout: 30000 // 30 seconds timeout
             });
 
             const writer = fs.createWriteStream(videoPath);
@@ -51,6 +53,10 @@ module.exports = {
                 writer.on('finish', resolve);
                 writer.on('error', reject);
             });
+
+            // Log file size
+            const stats = fs.statSync(videoPath);
+            console.log(`Video downloaded: ${stats.size} bytes`);
 
             // Send the video file as an attachment
             await api.sendMessage({
