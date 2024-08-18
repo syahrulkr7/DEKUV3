@@ -6,7 +6,7 @@ const churchillitos = require('path');
 
 module.exports = {
     config: {
-        name: "uptime",
+        name: "upt",
         description: "Get bot uptime and system information",
         usage: "",
         cooldown: 5,
