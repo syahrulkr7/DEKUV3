@@ -13,7 +13,7 @@ module.exports = {
     prefix: true,
     author: "Churchill",
   },
-  start: async function ({ api, text, event, reply }) {
+  start: async function ({ api, text, event, reply, react }) {
     // Check if the user provided the necessary parameters
     if (!text.length || text.join(" ").split(" | ").length < 3) {
       return reply("Please provide the required parameters in the format: Avatarv1 bgtext | signature | color");
@@ -24,9 +24,12 @@ module.exports = {
     signature = signature.trim();
     color = color.trim();
 
+    // React with a loading emoji
+    await react('⏳');
+
     async function fetchAvatar() {
       const randomId = Math.floor(Math.random() * 800) + 1;
-      const url = `https://deku-rest-api-3jvu.onrender.com/canvas/avatar?id=${randomId}&bgtext=${encodeURIComponent(bgtext)}&signature=${encodeURIComponent(signature)}&color=${encodeURIComponent(color)}`;
+      const url = `${global.deku.ENDPOINT}/canvas/avatar?id=${randomId}&bgtext=${encodeURIComponent(bgtext)}&signature=${encodeURIComponent(signature)}&color=${encodeURIComponent(color)}`;
       try {
         const response = await axios({
           url,
@@ -57,5 +60,8 @@ module.exports = {
     api.sendMessage(message, event.threadID, () => {
       fs.unlinkSync(avatarPath);
     });
+
+    // React with a checkmark emoji after the avatar is sent
+    await react('✅');
   },
-}
+};
