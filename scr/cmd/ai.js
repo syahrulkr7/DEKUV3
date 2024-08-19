@@ -3,28 +3,24 @@ const axios = require('axios');
 module.exports = {
     config: {
         name: 'ai',
-        description: 'Interact with GPT API to generate responses.',
-        usage: 'gpt [custom prompt]',
+        description: 'Interact with the Churchill GPT AI',
+        usage: 'ai [question]',
         cooldown: 3,
-        accessableby: 0,
+        accessableby: 0, 
         category: 'AI',
         prefix: false,
-        author: 'churchill',
+        author: 'Churchill'
     },
-    start: async function({ api, text, event, reply }) {
-        const customPrompt = text.join(' ');
+    start: async function({ api, event, text, reply }) {
+        const question = text.join(' ');
 
-        if (!customPrompt) {
-            return reply('Please provide a question.');
+        if (!question) {
+            return reply('Please provide a question, for example: tas what is the meaning of life?');
         }
-
-        const apiUrl = `https://asmit-docs.onrender.com/Gpt?prompt=${encodeURIComponent(customPrompt)}`;
-
-        api.setMessageReaction("🔄", event.messageID, () => {}, true);
 
         const initialMessage = await new Promise((resolve, reject) => {
             api.sendMessage({
-                body: 'Chilli Generating Answer...',
+                body: '🤖 𝙲𝚑𝚒𝚕𝚕𝚒 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...',
                 mentions: [{ tag: event.senderID, id: event.senderID }],
             }, event.threadID, (err, info) => {
                 if (err) return reject(err);
@@ -33,46 +29,37 @@ module.exports = {
         });
 
         try {
-            const response = await axios.get(apiUrl);
+            const response = await axios.get('https://asmit-docs.onrender.com/Gpt', {
+                params: { prompt: question }
+            });
 
-            if (!response.data || typeof response.data !== 'string') {
-                throw new Error('Unexpected response format');
-            }
+            const aiResponse = response.data;
+            const responseString = aiResponse.reply ? aiResponse.reply : 'No result found.';
 
-            const gptResponse = response.data.trim();
-
-            const senderName = event.senderName || (await api.getUserInfo(event.senderID))[event.senderID].name || 'Unknown User';
-
-            const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
-            const currentDateObj = new Date(currentDate);
-
-            const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-            const dayName = daysOfWeek[currentDateObj.getDay()];
-            const timeString = currentDateObj.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
+            // Fetch user's name to include in the response
+            const userInfo = await new Promise((resolve, reject) => {
+                api.getUserInfo(event.senderID, (err, ret) => {
+                    if (err) return reject(err);
+                    resolve(ret[event.senderID].name);
+                });
             });
 
             const formattedResponse = `
-🤖 Chilli Response
+🤖 𝙲𝚑𝚒𝚕𝚕𝚒 𝙶𝚙𝚝
 ━━━━━━━━━━━━━━━━━━
-${gptResponse}
+${responseString}
 ━━━━━━━━━━━━━━━━━━
-👤 Asked By: ${senderName}
-🕒 Respond Time: ${dayName} ${timeString}
+👤 𝙰𝚜𝚔𝚎𝚍 𝚋𝚢: ${userInfo}
             `;
 
             await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
-            api.setMessageReaction("✔️", event.messageID, () => {}, true);
 
         } catch (error) {
-            console.error('Error fetching GPT response:', error.message || error);
-            await api.editMessage('An error occurred while fetching the GPT response. Please try again later.', initialMessage.messageID);
-            api.setMessageReaction("❌", event.messageID, () => {}, true);
+            console.error('Error:', error);
+            await api.editMessage('An error occurred, please try again later.', initialMessage.messageID);
         }
     },
     auto: async function({ api, event, text, reply }) {
-        // Implement any automatic actions here if needed
+        // Optional: Add auto-response logic here if needed
     }
 };
