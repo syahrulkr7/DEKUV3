@@ -26,7 +26,7 @@ module.exports = {
 
     async function fetchAvatar() {
       const randomId = Math.floor(Math.random() * 800) + 1;
-      const url = 'https://deku-rest-api-3jvu.onrender.com/canvas/avatarv2?id=${randomId}&bgtext=${encodeURIComponent(bgtext)}&signature=${encodeURIComponent(signature)}&color=${encodeURIComponent(color)}`;
+      const url = 'https://deku-rest-api-3jvu.onrender.com/canvas/avatar?id=${randomId}&bgtext=${encodeURIComponent(bgtext)}&signature=${encodeURIComponent(signature)}&color=${encodeURIComponent(color)}`;
       try {
         const response = await axios({
           url,
