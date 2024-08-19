@@ -9,7 +9,7 @@ module.exports = {
     accessableby: 0,
     category: 'Utility',
     prefix: true,
-    aliases: ['gemini'],
+    author: 'Churchill',
     version: '1.0.0',
   },
   start: async function ({ api, event, text, react, reply }) {
@@ -20,17 +20,17 @@ module.exports = {
       return reply('Please provide a prompt or attach a photo for the AI to analyze.');
     }
 
-    let apiUrl = 'https://deku-rest-api-3jvu.onrender.com/gemini?';
+    let apiUrl = `${global.deku.ENDPOINT}/gemini?`;
 
     if (attachment && attachment.type === 'photo') {
-      const prompt = customPrompt || 'describe this photo';
+      const prompt = customPrompt || 'answer that need to answer';
       const imageUrl = attachment.url;
       apiUrl += `prompt=${encodeURIComponent(prompt)}&url=${encodeURIComponent(imageUrl)}`;
     } else {
       apiUrl += `prompt=${encodeURIComponent(customPrompt)}`;
     }
 
-    await react('⏳'); // React with a loading emoji
+    await react('⏳'); 
 
     const initialMessage = await new Promise((resolve, reject) => {
       api.sendMessage({
