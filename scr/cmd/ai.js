@@ -34,14 +34,17 @@ module.exports = {
 
         try {
             const response = await axios.get(apiUrl);
-            const gptResponse = response.data;
 
-            // Fetch the user's name if not already set
+            if (!response.data || typeof response.data !== 'string') {
+                throw new Error('Unexpected response format');
+            }
+
+            const gptResponse = response.data.trim();
+
             const senderName = event.senderName || (await api.getUserInfo(event.senderID))[event.senderID].name || 'Unknown User';
 
-            // Get the current date and time in the correct timezone
             const currentDate = new Date().toLocaleString('en-US', { timeZone: 'Asia/Manila' });
-            const currentDateObj = new Date(currentDate);  // Convert to Date object for easier manipulation
+            const currentDateObj = new Date(currentDate);
 
             const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
             const dayName = daysOfWeek[currentDateObj.getDay()];
@@ -54,7 +57,7 @@ module.exports = {
             const formattedResponse = `
 🤖 Chilli Response
 ━━━━━━━━━━━━━━━━━━
-${gptResponse.trim()}
+${gptResponse}
 ━━━━━━━━━━━━━━━━━━
 👤 Asked By: ${senderName}
 🕒 Respond Time: ${dayName} ${timeString}
@@ -64,8 +67,9 @@ ${gptResponse.trim()}
             api.setMessageReaction("✔️", event.messageID, () => {}, true);
 
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching GPT response:', error.message || error);
             await api.editMessage('An error occurred while fetching the GPT response. Please try again later.', initialMessage.messageID);
+            api.setMessageReaction("❌", event.messageID, () => {}, true);
         }
     },
     auto: async function({ api, event, text, reply }) {
