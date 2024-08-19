@@ -1,65 +1,65 @@
 const axios = require('axios');
 
 module.exports = {
-    config: {
-        name: 'ai',
-        description: 'Interact with the Churchill GPT AI',
-        usage: 'ai [question]',
-        cooldown: 3,
-        accessableby: 0, 
-        category: 'AI',
-        prefix: false,
-        author: 'Churchill'
-    },
-    start: async function({ api, event, text, reply }) {
-        const question = text.join(' ');
+  config: {
+    name: 'ai',
+    description: 'Interact with the Gemini AI',
+    usage: 'ai [custom prompt] (attach image or not)',
+    cooldown: 3,
+    accessableby: 0,
+    category: 'Utility',
+    prefix: true,
+    aliases: ['gemini'],
+    version: '1.0.0',
+  },
+  start: async function ({ api, event, text, react, reply }) {
+    const attachment = event.messageReply?.attachments[0] || event.attachments[0];
+    const customPrompt = text.join(' ');
 
-        if (!question) {
-            return reply('Please provide a question, for example: tas what is the meaning of life?');
-        }
-
-        const initialMessage = await new Promise((resolve, reject) => {
-            api.sendMessage({
-                body: '🤖 𝙲𝚑𝚒𝚕𝚕𝚒 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...',
-                mentions: [{ tag: event.senderID, id: event.senderID }],
-            }, event.threadID, (err, info) => {
-                if (err) return reject(err);
-                resolve(info);
-            }, event.messageID);
-        });
-
-        try {
-            const response = await axios.get('https://asmit-docs.onrender.com/Gpt', {
-                params: { prompt: question }
-            });
-
-            const aiResponse = response.data;
-            const responseString = aiResponse.reply ? aiResponse.reply : 'No result found.';
-
-            // Fetch user's name to include in the response
-            const userInfo = await new Promise((resolve, reject) => {
-                api.getUserInfo(event.senderID, (err, ret) => {
-                    if (err) return reject(err);
-                    resolve(ret[event.senderID].name);
-                });
-            });
-
-            const formattedResponse = `
-🤖 𝙲𝚑𝚒𝚕𝚕𝚒 𝙶𝚙𝚝
-━━━━━━━━━━━━━━━━━━
-${responseString}
-━━━━━━━━━━━━━━━━━━
-👤 𝙰𝚜𝚔𝚎𝚍 𝚋𝚢: ${userInfo}
-            `;
-
-            await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
-
-        } catch (error) {
-            console.error('Error:', error);
-            await api.editMessage('An error occurred, please try again later.', initialMessage.messageID);
-        }
-    },
-    auto: async function({ api, event, text, reply }) {
-        // Optional: Add auto-response logic here if needed
+    if (!customPrompt && !attachment) {
+      return reply('Please provide a prompt or attach a photo for the AI to analyze.');
     }
+
+    let apiUrl = 'https://deku-rest-api-3jvu.onrender.com/gemini?';
+
+    if (attachment && attachment.type === 'photo') {
+      const prompt = customPrompt || 'describe this photo';
+      const imageUrl = attachment.url;
+      apiUrl += `prompt=${encodeURIComponent(prompt)}&url=${encodeURIComponent(imageUrl)}`;
+    } else {
+      apiUrl += `prompt=${encodeURIComponent(customPrompt)}`;
+    }
+
+    await react('⏳'); // React with a loading emoji
+
+    const initialMessage = await new Promise((resolve, reject) => {
+      api.sendMessage({
+        body: '🔍 Processing your request...',
+        mentions: [{ tag: event.senderID, id: event.senderID }],
+      }, event.threadID, (err, info) => {
+        if (err) return reject(err);
+        resolve(info);
+      });
+    });
+
+    try {
+      const response = await axios.get(apiUrl);
+      const aiResponse = response.data.gemini;
+
+      const formattedResponse = `
+✨ 𝙲𝚑𝚒𝚕𝚕𝚒 𝚁𝚎𝚜𝚙𝚘𝚗𝚜𝚎
+━━━━━━━━━━━━━━━━━━
+${aiResponse.trim()}
+━━━━━━━━━━━━━━━━━━
+-𝙱𝚒𝚗𝚐 𝙲𝚑𝚞𝚛𝚌𝚑𝚒𝚕𝚕
+      `;
+
+      await react('✅'); // React with a checkmark emoji
+      await api.editMessage(formattedResponse.trim(), initialMessage.messageID);
+
+    } catch (error) {
+      console.error('Error:', error);
+      await api.editMessage('An error occurred, please try using the "ai2" command.', initialMessage.messageID);
+    }
+  }
 };
